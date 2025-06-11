@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="stylesheet" href="style.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebRTC Demo</title>
+  </head>
+  <body>
+    <div class="container">
+      <div class="section">
+        <h2>Establish WebTransport connection</h2>
+        <div class="input-line">
+          <label for="url">URL:</label>
+          <input type="text" name="url" id="url" value="https://localhost:4433/data" readonly />
+          <input type="button" id="sendOffer" value="Connect">
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>1. Bouncing Balls</h2>
+        <div class="videos">
+          <h3>Remote Stream</h3>
+          <video id="remoteVideo" autoplay playsinline></video>
+        </div>
+      </div>
+
+      <div class="section">
+        <!-- <h3>2. Ball Detection Canvas</h3> -->
+        <canvas id="canvasInput" width="500" height="500"></canvas>
+      </div>
+
+      <div class="section">
+        <h3>2. Error (coordinate vs. real):</h3>
+        <p id="errorText" style="color:red;"></p>
+      </div>
+    </div>
+
+    <script type="module" src="./client.js"></script>
+    <script async src="https://docs.opencv.org/4.x/opencv.js"></script>
+  </body>
+</html>
