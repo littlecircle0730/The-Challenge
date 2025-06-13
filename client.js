@@ -14,7 +14,7 @@ let transport, streamNumber, writer;
 let pc, remoteVideo, offer, offerDescription;
 
 async function connect() {
-    const url = 'https://localhost:8080/data';
+    const url = 'https://localhost:4433/data';
     try {
       var transportInner = new WebTransport(url);
       console.log('Initiating connection...');
@@ -171,7 +171,7 @@ async function main() {
 
             src.delete(); //release cv 
             circles.delete();
-        }, 1000); //handle every 20ms
+        }, 100); //handle every 20ms
     });
     waitForBouncingErr(globalThis.transport);
 }

@@ -26,7 +26,7 @@ import numpy as np
 
 # param
 BIND_ADDRESS = '::1'
-BIND_PORT = 8080
+BIND_PORT = 4433
 
 event = asyncio.Event()
 thread = None 
