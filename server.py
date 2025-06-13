@@ -50,7 +50,7 @@ class dataHandler:
                 if "type" in msg and msg["type"] == 'coord':
                     print("### [Data Handler] receive message: ", msg["type"])
                     predicted_x, predicted_y = int(msg["x"]), int(msg["y"])
-                    real_x, real_y = self.coord
+                    real_x, real_y = self.coord.current_ball_position
                     err = ((real_x - predicted_x)**2 + (real_y - predicted_y)**2)**0.5
                     error_msg = {
                         "type": "error",
@@ -232,7 +232,7 @@ class BouncingBallFrames(threading.Thread):
                 self.vy *= -1
 
             # update the ball position
-            self.update_coordinate.current_ball_position = (self.x, self.y)
+            real_x, real_y = self.update_coordinate.current_ball_position
 
             frame = np.zeros((self.canvasH, self.canvasW, 3), dtype=np.uint8)
             cv.circle(frame, (int(self.x), int(self.y)), self.radius, (255, 255, 255), -1)

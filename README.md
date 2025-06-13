@@ -57,14 +57,14 @@ Kubernetes deployment is still a work in progress. For now, the application is d
 ## Local RUN
 Server: `python server.py`
 Client: `npx vite`
-Client page on: http://localhost:5173/
+Client page on: https://localhost:5173/
 
 ## For webTransport app on browser
 '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' \
   --origin-to-force-quic-on=localhost:4433 \
   --ignore-certificate-errors-spki-list=pJ2BdYvZEgR3Tbli8/mA+lwu+sGiJAjeBrkY3NMVpCk= \
   --user-data-dir=/tmp/chrome-wt-profile \
-  http://localhost:5173
+  https://localhost:5173
 
 
 ### Docker
