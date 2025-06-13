@@ -25,3 +25,10 @@ http://localhost:5173/
 
 # Test
 python -m unittest Nimble_Challenge/src/tests/test_server.py
+
+
+'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' \
+  --origin-to-force-quic-on=localhost:4433 \
+  --ignore-certificate-errors-spki-list=pJ2BdYvZEgR3Tbli8/mA+lwu+sGiJAjeBrkY3NMVpCk= \
+  --user-data-dir=/tmp/chrome-wt-profile \
+  http://localhost:5173

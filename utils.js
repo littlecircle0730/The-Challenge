@@ -51,6 +51,20 @@ export async function sendOverWebTransport(writer, msg) {
     }
 }
 
+export async function send_coord(datagramWriter, jsonData) {
+    try {
+        let encodedJSON = new TextEncoder('utf-8').encode(JSON.stringify(jsonData));
+        if (datagramWriter) {
+            await datagramWriter.write(encodedJSON);
+            console.log("Sent data successfully via datagram");
+        } else {
+            console.error("Datagrams not available");
+        }
+    } catch (e) {
+        console.error("Error sending data:", e);
+    }
+}
+
 
 export async function waitForAnswer(stream, pc) {
     let buffer = new Uint8Array(0);  
@@ -70,9 +84,6 @@ export async function waitForAnswer(stream, pc) {
                 console.log("Received SDP answer with Type:", answer.type);
                 await pc.setRemoteDescription({ type: answer.type, sdp: answer.sdp });
                 console.log("### Clinet receive remote description", pc.remoteDescription)
-                // console.log("### Clinet receive remote description", JSON.stringify(pc.currentRemoteDescription))
-                // console.log("### Clinet receive remote description", JSON.stringify(pc.currentLocalDescription))
-                
             } else if(data.type === "candidate") {
                 const candidateData = data;
                 const candidate = new RTCIceCandidate(candidateData);
@@ -101,7 +112,7 @@ export async function waitForAnswer(stream, pc) {
     }
 }
 
-export async function waitForBouncingErr() {
+export async function waitForBouncingErr(transport) {
     const reader = transport.datagrams.readable.getReader();
     while (true) {
       const { value, done } = await reader.read();

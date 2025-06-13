@@ -43,22 +43,24 @@ class dataHandler:
 
     def h3_event_received(self, event: H3Event) -> None:
         global pc
-        # if isinstance(event, DatagramReceived):
-        #     print("Receive data, DatagramReceived", event.data)
-        #     # payload = str(len(event.data)).encode('ascii')
-        #     # self._http.send_datagram(self._session_id, payload)
-        #     # msg = event.data
-        #     msg = json.loads(event.data.decode("utf-8"))
-        #     print("### [Data Handler] receive message: ", msg["type"])
-        #     if msg["type"] == 'offer':
-        #         offer = RTCSessionDescription(sdp=msg["sdp"], type=msg["type"])
-        #         offer.direction = "sendrecv"
-        #         # self._http.send_datagram(self._session_id, self.answer)
-        #         asyncio.ensure_future(self._handle_offer(offer))
-        #     elif msg["type"] == 'coord':
-        #         predicted_x, predicted_y = msg["x"], msg["y"]
-        #         real_x, real_y = self.coord
-        #         err = ((real_x - predicted_x)**2 + (real_y - predicted_y)**2)**0.5
+        if isinstance(event, DatagramReceived):
+            rawData = event.data.decode("utf-8")
+            try:
+                msg = json.loads(rawData)
+                if "type" in msg and msg["type"] == 'coord':
+                    print("### [Data Handler] receive message: ", msg["type"])
+                    predicted_x, predicted_y = int(msg["x"]), int(msg["y"])
+                    real_x, real_y = self.coord
+                    err = ((real_x - predicted_x)**2 + (real_y - predicted_y)**2)**0.5
+                    error_msg = {
+                        "type": "error",
+                        "value": err
+                    }
+                    error_json = json.dumps(error_msg)
+                    encoded_error = error_json.encode("utf-8")
+                    self._http.send_datagram(self._session_id, encoded_error)
+            except Exception as e:
+                print("Not expected data type:", e)
 
         if isinstance(event, WebTransportStreamDataReceived):
             if event.stream_id not in self._stream_buffers:
@@ -89,13 +91,11 @@ class dataHandler:
                     if msg["type"] == 'offer':
                         offer = RTCSessionDescription(sdp=msg["sdp"], type=msg["type"])
                         asyncio.ensure_future(self._handle_offer(offer, response_id, event.stream_id))
-                    # elif msg["type"] == 'candidate':
-                    #     candidate_data = msg["candidate"]
-                    #     candidate = asyncio.ensure_future( self.handle_candidate(candidate_data) )
                     elif msg["type"] == 'coord':
-                        predicted_x, predicted_y = msg["x"], msg["y"]
-                        real_x, real_y = self.coord
-                        err = ((real_x - predicted_x)**2 + (real_y - predicted_y)**2)**0.5
+                        print("?????????")
+                    #     predicted_x, predicted_y = msg["x"], msg["y"]
+                    #     real_x, real_y = self.coord
+                    #     err = ((real_x - predicted_x)**2 + (real_y - predicted_y)**2)**0.5
                 self.stream_closed(event.stream_id)
 
     async def _handle_offer(self, offer, response_id, stream_id):
@@ -126,28 +126,6 @@ class dataHandler:
             print("### Answer sent Successfully")
         except Exception as e:
             print("### Answer sent Fail", e)
-    
-    # async def handle_candidate(self, candidate):
-    #     ip = candidate['candidate'].split(' ')[4]
-    #     port = candidate['candidate'].split(' ')[5]
-    #     protocol = candidate['candidate'].split(' ')[7]
-    #     priority = candidate['candidate'].split(' ')[3]
-    #     foundation = candidate['candidate'].split(' ')[0]
-    #     component = candidate['candidate'].split(' ')[1]
-    #     type = candidate['candidate'].split(' ')[7]
-    #     rtc_candidate = RTCIceCandidate(
-    #         ip=ip,
-    #         port=port,
-    #         protocol=protocol,
-    #         priority=priority,
-    #         foundation=foundation,
-    #         component=component,
-    #         type=type,
-    #         sdpMid=candidate['sdpMid'],
-    #         sdpMLineIndex=candidate['sdpMLineIndex']
-    #     )
-    #     print("Add new Candidates")
-    #     await pc.addIceCandidate(rtc_candidate)
 
     def stream_closed(self, stream_id: int) -> None:
         try:
@@ -234,7 +212,7 @@ class BouncingBallFrames(threading.Thread):
         # ceter in the canvas
         self.x = self.canvasW // 2
         self.y = self.canvasH // 2
-        self.radius = 10
+        self.radius = 40
         self.vx = random.random() * 10
         self.vy = random.random() * 10
         self.frame_interval = 1 / frame_rate
@@ -257,7 +235,7 @@ class BouncingBallFrames(threading.Thread):
             self.update_coordinate.current_ball_position = (self.x, self.y)
 
             frame = np.zeros((self.canvasH, self.canvasW, 3), dtype=np.uint8)
-            cv.circle(frame, (int(self.x), int(self.y)), self.radius, (0, 0, 255), -1)
+            cv.circle(frame, (int(self.x), int(self.y)), self.radius, (255, 255, 255), -1)
 
             video_frame = VideoFrame.from_ndarray(frame, format="bgr24")
             # video_frame.pts, video_frame.time_base = await self.next_timestamp() #aiortc.VideoStreamTrack

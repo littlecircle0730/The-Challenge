@@ -1,4 +1,4 @@
-import { getBallCoordinate, detectCircle, sendOverWebTransport, waitForAnswer } from './utils.js';
+import { getBallCoordinate, detectCircle, sendOverWebTransport, waitForAnswer, send_coord, waitForBouncingErr } from './utils.js';
 import cv from 'opencv.js';
 
 const servers = {
@@ -45,19 +45,59 @@ async function connect() {
         // stream writer
         globalThis.stream = await transportInner.createBidirectionalStream();
         globalThis.writer = stream.writable.getWriter();
+        // datagrams writer
+        globalThis.datagramWriter = transportInner.datagrams.writable.getWriter();
     } catch (e) {
       console.log('Sending datagrams not supported: ' + e, 'error');
       return;
     }
+}
 
-    document.getElementById('sendOffer').disabled = true;
+function findBallBoundaries() {
+    const canvas = document.getElementById('canvasInput');
+    const ctx = canvas.getContext('2d');
+    const size = 40;
+
+    canvas.width = 500;
+    canvas.height = 500;
+    
+    ctx.drawImage(globalThis.remoteVideo, 0, 0, canvas.width, canvas.height);
+    
+    let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    let data = imageData.data;
+
+    const whiteThreshold = 200;  
+
+    let left = canvas.width, right = 0, top = canvas.height, bottom = 0;
+
+    for (let y = 0; y < canvas.height; y++) {
+        for (let x = 0; x < canvas.width; x++) {
+            let index = (y * canvas.width + x) * 4;
+            let r = data[index]; 
+            let g = data[index + 1];
+            let b = data[index + 2];
+
+            if (r > whiteThreshold && g > whiteThreshold && b > whiteThreshold) {
+                left = Math.min(left, x);   
+                right = Math.max(right, x);
+                top = Math.min(top, y);   
+                bottom = Math.max(bottom, y); 
+            }
+        }
+    }
+    // console.log(left, right, top, bottom)
+    if (left === canvas.width && right === 0 && top === canvas.height && bottom === 0) {
+        console.log("No ball found.");
+        return null;
+    }
+    return { x: (left + right) / 2, y: (top + bottom) / 2 };
 }
 
 async function main() {
-    let iceConnectionStateQueue = [];
 
     globalThis.pc = new RTCPeerConnection(servers);
 
+    globalThis.dataChannel = globalThis.pc.createDataChannel("ballCoordinates");
     globalThis.remoteVideo = document.getElementById('remoteVideo');
     const videoTransceiver = globalThis.pc.addTransceiver("video", {
         direction: 'recvonly'
@@ -97,51 +137,42 @@ async function main() {
     await sendOverWebTransport(globalThis.writer, globalThis.offer);
     await waitForAnswer(globalThis.stream, globalThis.pc);
 
-    // while (iceConnectionStateQueue.length > 0) {
-    //     let event = iceConnectionStateQueue.shift();
-    //     console.log("### event candidate", event.candidate)
-    //     if (globalThis.writer.closed) {
-    //         globalThis.stream = await globalThis.transport.createBidirectionalStream();
-    //         globalThis.writer = globalThis.stream.writable.getWriter();
-    //     }
-    //     sendOverWebTransport(globalThis.writer, { type: 'candidate', candidate: event.candidate });
-    // }
+    // parse & send the ball location
+    globalThis.remoteVideo.addEventListener('loadeddata', () => {
+        const canvas = document.getElementById('canvasInput');
 
-    // // parse & send the ball location
-    // globalThis.remoteVideo.addEventListener('loadeddata', () => {
-    //     const canvas = document.getElementById('canvasInput');
-    //     const ctx = canvas.getContext('2d');
-
-    //     setInterval(async () => {
-    //         ctx.drawImage(globalThis.remoteVideo, 0, 0, canvas.width, canvas.height);
+        setInterval(() => {
         
-    //         let src = cv.imread('canvasInput');
-    //         let circles = new cv.Mat();
+            let src = cv.imread(canvas);
+            let circles = new cv.Mat();
         
-    //         // detectCircle(cv, src, circles)
-    //         if (src && src.data) {
-    //             cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
-    //             cv.HoughCircles(src, circles, cv.HOUGH_GRADIENT,
-    //                 1, 45, 75, 40, 0, 0);
-    //         } else {
-    //             console.log("### No Image Src")
-    //         }
-            
-    //         // send coord back
-    //         const coord = getBallCoordinate(circles);
-    //         let jsonData = JSON.stringify(coord);
-    //         let encodedJSON = new TextEncoder().encode(jsonData);;
-    //         if (globalThis.writer.closed) {
-    //             globalThis.stream = await globalThis.transport.createBidirectionalStream();
-    //             globalThis.writer = globalThis.stream.writable.getWriter();
-    //         }
-    //         sendOverWebTransport(globalThis.writer, encodedJSON);
+            // // detectCircle(cv, src, circles)
+            // if (src && src.data) {
+            //     cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
+            //     cv.GaussianBlur(src, src, new cv.Size(5, 5), 0);
+            //     cv.HoughCircles(src, circles, cv.HOUGH_GRADIENT, 1, 45, 200, 100, 0, 0);
+            // } else {
+            //     console.log("### No Image Src")
+            // }
+            // // send coord back
+            // if (circles.cols > 0) {
+            //     const coord = getBallCoordinate(circles);
+            //     let jsonData = JSON.stringify(coord);
+            //     console.log("### Sending data via datagram:", jsonData);
+            //     send_coord(globalThis.datagramWriter, jsonData)
+            // } else {
+            //     console.log("skip ")
+            // }
+            const coord = findBallBoundaries()
+            coord["type"] = "coord";
+            console.log("coord", coord)
+            send_coord(globalThis.datagramWriter, coord)
 
-    //         src.delete(); //release cv 
-    //         circles.delete();
-
-    //     }, 20); //handle every 20ms
-    // });
+            src.delete(); //release cv 
+            circles.delete();
+        }, 1000); //handle every 20ms
+    });
+    waitForBouncingErr(globalThis.transport);
 }
 
 main();
