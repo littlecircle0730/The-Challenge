@@ -1,0 +1,20 @@
+version: "3.9"
+
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile.server 
+    ports:
+      - "4433:4433"
+    container_name: nimble-server
+
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    ports:
+      - "5173:5173"
+    depends_on:
+      - server
+    container_name: nimble-client
