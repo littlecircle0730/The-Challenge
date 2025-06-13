@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nimble-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nimble-client
+  template:
+    metadata:
+      labels:
+        app: nimble-client
+    spec:
+      containers:
+        - name: nimble-client
+          image: nimble-client:latest
+          ports:
+            - containerPort: 5173
