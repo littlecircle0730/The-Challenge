@@ -53,6 +53,7 @@ async function connect() {
     }
 }
 
+// Should be able to improve by binary search in Later
 function findBallBoundaries() {
     const canvas = document.getElementById('canvasInput');
     const ctx = canvas.getContext('2d');
