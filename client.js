@@ -2,15 +2,20 @@ import { getBallCoordinate, detectCircle, sendOverWebTransport, waitForAnswer, s
 
 const servers = {
     iceServers: [
-        {
-        urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'],
-        },
+      {
+        urls: [
+          'stun:stun1.l.google.com:19302',
+          'stun:stun2.l.google.com:19302'
+        ]
+      },
+      {
+        urls: "turn:192.168.0.111:3478?transport=udp",
+        username: 'user', 
+        credential: 'pass'
+      }
     ],
-    iceCandidatePoolSize: 10,
+    iceCandidatePoolSize: 10
 };
-
-let transport, streamNumber, writer;
-let pc, remoteVideo, offer, offerDescription;
 
 async function connect() {
     const url = 'https://localhost:4433/data';
@@ -118,6 +123,12 @@ async function main() {
         console.log("### ICE Connection state: ", globalThis.pc.iceConnectionState);
         if (globalThis.pc.iceConnectionState === "connected") {
             console.log("### WebRTC connection established successfully!");
+        }
+    };
+
+    globalThis.pc.onicecandidate = (event) => {
+        if (event.candidate) {
+          console.log("ICE candidate:", event.candidate.candidate);
         }
     };
     

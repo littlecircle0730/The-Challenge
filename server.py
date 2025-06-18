@@ -277,7 +277,15 @@ async def main():
     global pc
     
     ice_servers = [
-        RTCIceServer(urls=["stun:stun1.l.google.com:19302", "stun:stun2.l.google.com:19302"])
+        RTCIceServer(
+            urls=[
+                "stun:stun1.l.google.com:19302",
+                "stun:stun2.l.google.com:19302",
+                "turn:192.168.0.111:3478"
+            ],
+            username="user",
+            credential="pass"
+        )
     ]
     configurationRTC = RTCConfiguration(iceServers=ice_servers)
     pc = RTCPeerConnection(configurationRTC)

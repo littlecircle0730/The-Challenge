@@ -32,3 +32,20 @@ services:
       - client
       - server
     container_name: nginx
+
+  turnserver:
+    image: instrumentisto/coturn
+    container_name: coturn
+    platform: linux/amd64
+    ports:
+      - "3478:3478"
+      - "3478:3478/udp"
+      - "60000-60100:60000-60100/udp" 
+    command: >
+      -n
+      --user user:pass
+      --realm myrealm
+      --min-port=60000
+      --max-port=60100
+      --external-ip=192.168.0.111
+      --log-file=stdout
