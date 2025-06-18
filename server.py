@@ -25,7 +25,7 @@ import random
 import numpy as np
 
 # param
-BIND_ADDRESS = '::1'
+BIND_ADDRESS = "0.0.0.0"  
 BIND_PORT = 4433
 
 event = asyncio.Event()
@@ -91,11 +91,7 @@ class dataHandler:
                     if msg["type"] == 'offer':
                         offer = RTCSessionDescription(sdp=msg["sdp"], type=msg["type"])
                         asyncio.ensure_future(self._handle_offer(offer, response_id, event.stream_id))
-                    elif msg["type"] == 'coord':
-                        print("?????????")
-                    #     predicted_x, predicted_y = msg["x"], msg["y"]
-                    #     real_x, real_y = self.coord
-                    #     err = ((real_x - predicted_x)**2 + (real_y - predicted_y)**2)**0.5
+                        
                 self.stream_closed(event.stream_id)
 
     async def _handle_offer(self, offer, response_id, stream_id):
@@ -148,6 +144,7 @@ class WebTransportProtocol(QuicConnectionProtocol):
 
     def quic_event_received(self, event: QuicEvent) -> None:
         if isinstance(event, ProtocolNegotiated):
+            print("### Protocol negotiated:", event.alpn_protocol)
             self._http = H3Connection(self._quic, enable_webtransport=True)
             # for candidate update
             global webTrans

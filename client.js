@@ -1,5 +1,4 @@
 import { getBallCoordinate, detectCircle, sendOverWebTransport, waitForAnswer, send_coord, waitForBouncingErr } from './utils.js';
-import cv from 'opencv.js';
 
 const servers = {
     iceServers: [
@@ -44,7 +43,7 @@ async function connect() {
     try {
         // stream writer
         globalThis.stream = await transportInner.createBidirectionalStream();
-        globalThis.writer = stream.writable.getWriter();
+        globalThis.writer = globalThis.stream.writable.getWriter();
         // datagrams writer
         globalThis.datagramWriter = transportInner.datagrams.writable.getWriter();
     } catch (e) {

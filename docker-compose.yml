@@ -2,10 +2,13 @@ version: "3.9"
 
 services:
   server:
+    platform: linux/arm64
     build:
       context: .
       dockerfile: Dockerfile.server 
     ports:
+      - "4433:4433/tcp"
+      - "4433:4433/udp"
       - "4433:4433"
     container_name: nimble-server
 
@@ -14,7 +17,18 @@ services:
       context: .
       dockerfile: Dockerfile.client
     ports:
-      - "5173:5173"
+      - "5173:5173"  
     depends_on:
       - server
     container_name: nimble-client
+  
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    ports:
+      - "443:443"
+    depends_on:
+      - client
+      - server
+    container_name: nginx

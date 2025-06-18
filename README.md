@@ -66,6 +66,13 @@ Client page on: https://localhost:5173/
   --user-data-dir=/tmp/chrome-wt-profile \
   https://localhost:5173
 
+## For Docker:
+'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' \
+  --origin-to-force-quic-on=localhost:4433 \
+  --ignore-certificate-errors-spki-list=pJ2BdYvZEgR3Tbli8/mA+lwu+sGiJAjeBrkY3NMVpCk= \
+  --user-data-dir=/tmp/chrome-wt-profile \
+  https://localhost:443
+
 
 ### Docker
 
